@@ -6,13 +6,11 @@
 <title>Clean Bengal Portal</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-// ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────────
+ 
 const firebaseConfig = {
   apiKey:            "AIzaSyDKhvN1PwUUkMlVmbifB3m_LD1IKMcwPEg",
   authDomain:        "project-dc78efb4-f8ad-439f-be9.firebaseapp.com",
@@ -21,35 +19,58 @@ const firebaseConfig = {
   messagingSenderId: "1060804723450",
   appId:             "1:1060804723450:web:2748785760adf5036b3f43"
 };
-// ─────────────────────────────────────────────────────────────────────────────
-
+ 
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
-
-// Real-time listener — admin panel always up to date
-const q = query(collection(db,'complaints'), orderBy('createdAt','desc'));
+const q   = query(collection(db,'complaints'), orderBy('createdAt','desc'));
 onSnapshot(q, snap => {
   window._complaints = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
   if(window._listReady) window.renderList();
 });
-
-window._db = db;
-window._col = collection(db,'complaints');
-window._updateDoc = (docId, data) => updateDoc(doc(db,'complaints',docId), data);
-window._addDoc   = (data) => addDoc(window._col, { ...data, createdAt: serverTimestamp() });
-window._deleteDoc = (docId) => deleteDoc(doc(db,'complaints',docId));
+window._col       = collection(db,'complaints');
+window._updateDoc = (id, data) => updateDoc(doc(db,'complaints',id), data);
+window._addDoc    = (data)     => addDoc(window._col, { ...data, createdAt: serverTimestamp() });
+window._deleteDoc = (id)       => deleteDoc(doc(db,'complaints',id));
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
 body{background:#f4f6f4}
+ 
+/* NAV */
 nav{background:#1a5f3f;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-icon{width:36px;height:36px;background:#f5c518;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
 .logo h1{font-size:15px;font-weight:600}.logo p{font-size:11px;opacity:.75}
-.tabs{display:flex;gap:6px;align-items:center}
+.tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .tab{padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;cursor:pointer;font-size:13px;transition:.2s}
 .tab.active{background:#fff;color:#1a5f3f;font-weight:600}
+ 
+/* PANELS */
 .panel{display:none;padding:20px}.panel.active{display:block}
+ 
+/* LANDING */
+.hero{text-align:center;padding:60px 20px 40px;max-width:700px;margin:0 auto}
+.hero h2{font-size:28px;font-weight:700;color:#1a5f3f;margin-bottom:12px}
+.hero p{font-size:15px;color:#555;line-height:1.7;margin-bottom:24px}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hbtn{padding:12px 28px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:.2s}
+.hbtn.primary{background:#1a5f3f;color:#fff}
+.hbtn.primary:hover{background:#145230}
+.hbtn.outline{background:#fff;color:#1a5f3f;border:2px solid #1a5f3f}
+.hbtn.outline:hover{background:#f0f7f4}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;max-width:700px;margin:0 auto 40px}
+.fcard{background:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:20px;text-align:center}
+.fcard .fi{font-size:32px;margin-bottom:8px}
+.fcard h3{font-size:14px;font-weight:600;color:#1a5f3f;margin-bottom:4px}
+.fcard p{font-size:12px;color:#666}
+.howto{max-width:600px;margin:0 auto 40px;background:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:24px}
+.howto h3{font-size:16px;font-weight:600;color:#1a5f3f;margin-bottom:16px;text-align:center}
+.step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+.step-num{width:28px;height:28px;background:#1a5f3f;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.step p{font-size:13px;color:#555;line-height:1.5}
+.footer{text-align:center;padding:20px;font-size:12px;color:#999;border-top:1px solid #e0e0e0;margin-top:20px}
+ 
+/* FORM */
 .card{background:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:20px;max-width:660px;margin:0 auto}
 .card h2{font-size:17px;font-weight:600;text-align:center}
 .card .sub{font-size:13px;color:#666;text-align:center;margin-top:4px}
@@ -74,11 +95,13 @@ textarea{resize:vertical;min-height:72px}
 .success{display:none;text-align:center;padding:32px 20px}
 .success .icon{font-size:52px;color:#1a5f3f}
 .cid{background:#e8f5e9;color:#1b5e20;border-radius:8px;padding:12px 24px;font-size:20px;font-weight:700;letter-spacing:1px;display:inline-block;margin:10px 0}
+ 
+/* ADMIN */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
 .scard{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e0e0e0}
 .scard .num{font-size:26px;font-weight:700}.scard .lbl{font-size:12px;color:#666;margin-top:2px}
 .scard.d .num{color:#c62828}.scard.w .num{color:#e65100}.scard.g .num{color:#1a5f3f}
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 .fbtn{padding:5px 12px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer}
 .fbtn.active{background:#1a5f3f;color:#fff;border-color:#1a5f3f}
 .clist{display:flex;flex-direction:column;gap:10px}
@@ -95,6 +118,8 @@ textarea{resize:vertical;min-height:72px}
 .bres{background:#e8f5e9;color:#1b5e20}.burg{background:#ffebee;color:#c62828}
 .abtn{padding:5px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer;white-space:nowrap}
 .abtn.primary{background:#1a5f3f;color:#fff;border-color:#1a5f3f}
+ 
+/* LOGIN */
 .login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center}
 .login-box{background:#fff;border-radius:14px;padding:32px 28px;width:360px;max-width:95vw;text-align:center}
 .login-box h2{font-size:18px;font-weight:700;color:#1a5f3f}
@@ -103,6 +128,8 @@ textarea{resize:vertical;min-height:72px}
 .login-err{font-size:12px;color:#c62828;min-height:16px;margin-bottom:6px}
 .login-btn{width:100%;padding:11px;background:#1a5f3f;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
 .login-cancel{display:block;margin-top:10px;font-size:13px;color:#888;cursor:pointer;background:none;border:none;width:100%}
+ 
+/* MODAL */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:12px;padding:22px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;position:relative}
@@ -114,35 +141,73 @@ textarea{resize:vertical;min-height:72px}
 .aib .albl{font-size:12px;color:#555;margin-bottom:5px;font-weight:600}
 .macts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 #modal-map{height:160px;border-radius:8px;margin-top:10px;border:1px solid #ccc}
+ 
+/* MISC */
 .dots{display:inline-flex;gap:4px}
 .dots span{width:6px;height:6px;border-radius:50%;background:#fff;animation:dt 1.2s infinite}
 .dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
 @keyframes dt{0%,80%,100%{opacity:.2}40%{opacity:1}}
-@media(max-width:520px){.row2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.row2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.hero h2{font-size:22px}}
 </style>
 </head>
 <body>
-
+ 
 <nav>
   <div class="logo">
     <div class="logo-icon">♻</div>
     <div><h1>Clean Bengal / পরিষ্কার বাংলা</h1><p>West Bengal Cleanliness Drive Portal</p></div>
   </div>
   <div class="tabs">
-    <button class="tab active" data-tab="public" onclick="switchTab('public',this)">📷 Report Issue</button>
-    <button class="tab" data-tab="admin" onclick="switchTab('admin',this)">🛡️ Authority Portal</button>
+    <button class="tab active" onclick="switchTab('home',this)">🏠 Home</button>
+    <button class="tab" onclick="switchTab('public',this)">📷 Report Issue</button>
+    <button class="tab" onclick="switchTab('admin',this)">🛡️ Authority Portal</button>
     <button id="logout-btn" onclick="logout()" style="display:none;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,100,100,.5);background:rgba(255,50,50,.15);color:#ffcccc;cursor:pointer;font-size:12px">⬠ Logout</button>
   </div>
 </nav>
-
-<!-- PUBLIC -->
-<div class="panel active" id="panel-public">
+ 
+<!-- LANDING PAGE -->
+<div class="panel active" id="panel-home">
+  <div class="hero">
+    <h2>🌿 A Cleaner Bengal Starts With You</h2>
+    <p>Spot a dirty area? Report it in 2 minutes. Your complaint goes directly to the local municipal authority who must take action within <strong>24 hours</strong>.</p>
+    <div class="hero-btns">
+      <button class="hbtn primary" onclick="switchTab('public',document.querySelectorAll('.tab')[1])">📷 Report an Issue</button>
+      <button class="hbtn outline" onclick="switchTab('admin',document.querySelectorAll('.tab')[2])">🛡️ Authority Login</button>
+    </div>
+  </div>
+ 
+  <div class="features">
+    <div class="fcard"><div class="fi">📷</div><h3>Photo Upload</h3><p>Upload a photo of the dirty area as proof</p></div>
+    <div class="fcard"><div class="fi">📍</div><h3>GPS Location</h3><p>Pin the exact location on the map</p></div>
+    <div class="fcard"><div class="fi">🤖</div><h3>AI Analysis</h3><p>Gemini AI auto-assesses health risk level</p></div>
+    <div class="fcard"><div class="fi">⏱</div><h3>24hr Action</h3><p>Authorities must respond within 24 hours</p></div>
+    <div class="fcard"><div class="fi">🔴</div><h3>Live Dashboard</h3><p>Real-time complaint tracking for officers</p></div>
+    <div class="fcard"><div class="fi">🔒</div><h3>Secure Portal</h3><p>Admin access restricted to officials only</p></div>
+  </div>
+ 
+  <div class="howto">
+    <h3>How It Works</h3>
+    <div class="step"><div class="step-num">1</div><p><strong>Take a photo</strong> of the dirty or unsafe area near you</p></div>
+    <div class="step"><div class="step-num">2</div><p><strong>Pin the location</strong> on the map using GPS or by searching the address</p></div>
+    <div class="step"><div class="step-num">3</div><p><strong>Fill basic details</strong> — district, issue type, short description</p></div>
+    <div class="step"><div class="step-num">4</div><p><strong>Submit</strong> — you get a complaint ID instantly</p></div>
+    <div class="step"><div class="step-num">5</div><p><strong>Authority acts</strong> — the concerned department sees it live and must resolve within 24 hours</p></div>
+  </div>
+ 
+  <div class="footer">
+    Built for educational purposes · Made with ❤️ for West Bengal ·
+    <a href="https://github.com/parthabit/clean-bengal" target="_blank" style="color:#1a5f3f">GitHub</a>
+  </div>
+</div>
+ 
+<!-- PUBLIC FORM -->
+<div class="panel" id="panel-public">
 <div class="card">
   <div id="form-wrap">
     <h2>Report a Dirty / Unsafe Area</h2>
     <p class="sub">Your report goes directly to local authorities.</p>
     <div class="badge24">⏱ Authorities must act within 24 hours</div>
-
+ 
     <div class="fgroup">
       <label>Upload Photo *</label>
       <div class="upzone" onclick="document.getElementById('filein').click()">
@@ -151,7 +216,7 @@ textarea{resize:vertical;min-height:72px}
       <img id="img-prev"/>
       <input type="file" id="filein" accept="image/*" style="display:none" onchange="handleImg(event)"/>
     </div>
-
+ 
     <div class="fgroup">
       <label>📍 Pin Location on Map *</label>
       <div class="map-wrap"><div id="map"></div></div>
@@ -162,7 +227,7 @@ textarea{resize:vertical;min-height:72px}
       </div>
       <div class="coords" id="coords-display">Click on map or use GPS to pin location</div>
     </div>
-
+ 
     <div class="row2">
       <div class="fgroup">
         <label>District *</label>
@@ -178,12 +243,12 @@ textarea{resize:vertical;min-height:72px}
       </div>
       <div class="fgroup"><label>Area / Ward</label><input type="text" id="area" placeholder="e.g. Ward 12"/></div>
     </div>
-
+ 
     <div class="fgroup">
       <label>Landmark</label>
       <input type="text" id="loc-text" placeholder="e.g. Near Central Park Gate"/>
     </div>
-
+ 
     <div class="fgroup">
       <label>Issue Type</label>
       <select id="itype">
@@ -198,20 +263,20 @@ textarea{resize:vertical;min-height:72px}
         <option>Other</option>
       </select>
     </div>
-
+ 
     <div class="fgroup">
       <label>Description</label>
       <textarea id="desc" placeholder="How long? How severe? Any health risks?"></textarea>
     </div>
-
+ 
     <div class="row2">
       <div class="fgroup"><label>Your Name (optional)</label><input type="text" id="uname" placeholder="Anonymous"/></div>
       <div class="fgroup"><label>Mobile (for updates)</label><input type="tel" id="mob" placeholder="10-digit"/></div>
     </div>
-
+ 
     <button class="submit-btn" id="sbtn" onclick="submitReport()">📤 Submit Report</button>
   </div>
-
+ 
   <div class="success" id="success-wrap">
     <div class="icon">✅</div>
     <h2 style="margin-top:10px">Report Submitted!</h2>
@@ -223,50 +288,60 @@ textarea{resize:vertical;min-height:72px}
   </div>
 </div>
 </div>
-
+ 
 <!-- ADMIN -->
 <div class="panel" id="panel-admin">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
     <div><h2 style="font-size:18px;font-weight:600">Authority Dashboard</h2><p style="font-size:12px;color:#666">West Bengal — Live Complaints</p></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-     <span style="font-size:11px;background:#f0f7f4;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555">✨ AI Active · 🔴 Live</span>
+      <span style="font-size:11px;background:#f0f7f4;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555">✨ AI Active · 🔴 Live</span>
       <button class="abtn" onclick="exportExcel()" style="font-size:12px;color:#1a5f3f;border-color:#1a5f3f">📊 Export Excel</button>
       <button class="abtn" onclick="exportPDF()" style="font-size:12px;color:#1565c0;border-color:#1565c0">📄 Export PDF</button>
       <button class="abtn" onclick="document.getElementById('del-bar').style.display='flex'" style="font-size:12px;color:#c62828;border-color:#f5c6c6">🗑 Clean Old Records</button>
     </div>
   </div>
-  <!-- delete confirmation bar -->
+ 
   <div id="del-bar" style="display:none;background:#fff3f3;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
     <span style="font-size:13px;color:#c62828">⚠️ Permanently delete <b>resolved</b> complaints older than:</span>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <select id="del-days" style="padding:5px 8px;border-radius:6px;border:1px solid #ccc;font-size:13px">
-        <option value="30">30 days</option>
-        <option value="60">60 days</option>
-        <option value="90" selected>90 days</option>
-        <option value="180">180 days</option>
+        <option value="30">30 days</option><option value="60">60 days</option>
+        <option value="90" selected>90 days</option><option value="180">180 days</option>
         <option value="0">All resolved</option>
       </select>
       <button class="abtn" style="background:#c62828;color:#fff;border-color:#c62828" onclick="confirmDelete()">Delete Now</button>
       <button class="abtn" onclick="document.getElementById('del-bar').style.display='none'">Cancel</button>
     </div>
   </div>
+ 
   <div class="stats">
     <div class="scard d"><div class="num" id="s-new">0</div><div class="lbl">New</div></div>
     <div class="scard w"><div class="num" id="s-prog">0</div><div class="lbl">In Progress</div></div>
     <div class="scard g"><div class="num" id="s-res">0</div><div class="lbl">Resolved</div></div>
     <div class="scard"><div class="num" id="s-tot">0</div><div class="lbl">Total</div></div>
   </div>
+ 
   <div class="filters">
     <button class="fbtn active" onclick="setFilter('all',this)">All</button>
     <button class="fbtn" onclick="setFilter('new',this)">New</button>
     <button class="fbtn" onclick="setFilter('in-progress',this)">In Progress</button>
     <button class="fbtn" onclick="setFilter('resolved',this)">Resolved</button>
     <button class="fbtn" onclick="setFilter('urgent',this)">🔴 Urgent</button>
+    <select id="district-filter" onchange="setDistrictFilter(this.value)" style="padding:5px 10px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer">
+      <option value="all">All Districts</option>
+      <option>Kolkata</option><option>Howrah</option><option>Hooghly</option>
+      <option>North 24 Parganas</option><option>South 24 Parganas</option>
+      <option>Bardhaman</option><option>Murshidabad</option><option>Nadia</option>
+      <option>Malda</option><option>Cooch Behar</option><option>Bankura</option>
+      <option>Purulia</option><option>Darjeeling</option><option>Jalpaiguri</option>
+      <option>Birbhum</option><option>Medinipur East</option><option>Medinipur West</option>
+    </select>
   </div>
-  <div class="clist" id="clist"><p style="color:#888;font-size:13px;padding:20px">Loading complaints from Firebase...</p></div>
+ 
+  <div class="clist" id="clist"><p style="color:#888;font-size:13px;padding:20px">Loading complaints...</p></div>
 </div>
-
-<!-- LOGIN -->
+ 
+<!-- LOGIN MODAL -->
 <div class="login-overlay" id="login-overlay" style="display:none">
   <div class="login-box">
     <div style="font-size:40px;margin-bottom:8px">🛡️</div>
@@ -276,11 +351,11 @@ textarea{resize:vertical;min-height:72px}
     <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <div class="login-err" id="login-err"></div>
     <button class="login-btn" onclick="doLogin()">🔐 Login</button>
-    <button class="login-cancel" onclick="cancelLogin()">← Back to Public Portal</button>
+    <button class="login-cancel" onclick="cancelLogin()">← Back</button>
   </div>
 </div>
-
-<!-- MODAL -->
+ 
+<!-- COMPLAINT MODAL -->
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <button class="mclose" onclick="closeModal()">✕</button>
@@ -288,11 +363,13 @@ textarea{resize:vertical;min-height:72px}
     <div id="m-body"></div>
   </div>
 </div>
-
+ 
 <script>
-// ── MAP ──────────────────────────────────────────────────────────────────────
-let map,marker,lat=null,lng=null;
+// ── MAP ───────────────────────────────────────────────────────────────────────
+let map,marker,lat=null,lng=null,mapInit=false;
+ 
 function initMap(){
+  if(mapInit)return; mapInit=true;
   map=L.map('map').setView([23.5,87.5],7);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(map);
   map.on('click',e=>placePin(e.latlng.lat,e.latlng.lng));
@@ -317,29 +394,15 @@ async function searchAddr(){
   const q=document.getElementById('addr-input').value.trim();if(!q){alert('Enter an address');return;}
   try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' West Bengal')}&format=json&limit=1`);const d=await r.json();if(d.length){map.setView([+d[0].lat,+d[0].lon],14);placePin(+d[0].lat,+d[0].lon);}else alert('Address not found.');}catch(e){alert('Search failed.');}
 }
-
-// ── AUTH ─────────────────────────────────────────────────────────────────────
-
-<button class="fbtn active" onclick="setFilter('all',this)">All</button>
-    <button class="fbtn" onclick="setFilter('new',this)">New</button>
-    <button class="fbtn" onclick="setFilter('in-progress',this)">In Progress</button>
-    <button class="fbtn" onclick="setFilter('resolved',this)">Resolved</button>
-    <button class="fbtn" onclick="setFilter('urgent',this)">🔴 Urgent</button>
-    <select id="district-filter" onchange="setDistrictFilter(this.value)" style="padding:5px 10px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer">
-      <option value="all">All Districts</option>
-      <option>Kolkata</option><option>Howrah</option><option>Hooghly</option>
-      <option>North 24 Parganas</option><option>South 24 Parganas</option>
-      <option>Bardhaman</option><option>Murshidabad</option><option>Nadia</option>
-      <option>Malda</option><option>Cooch Behar</option><option>Bankura</option>
-      <option>Purulia</option><option>Darjeeling</option><option>Jalpaiguri</option>
-      <option>Birbhum</option><option>Medinipur East</option><option>Medinipur West</option>
-    </select>
+ 
+// ── AUTH ──────────────────────────────────────────────────────────────────────
 const ADMINS=[{user:'admin',pass:'wb@2026'},{user:'partha',pass:'1234'}];
 let isLoggedIn=false;
-
+ 
 function switchTab(tab,btn){
   if(tab==='admin'&&!isLoggedIn){document.getElementById('login-overlay').style.display='flex';document.getElementById('login-user').focus();return;}
   _activateTab(tab,btn);
+  if(tab==='public'){setTimeout(initMap,100);}
 }
 function _activateTab(tab,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -356,22 +419,20 @@ function doLogin(){
     document.getElementById('login-err').textContent='';
     document.getElementById('login-user').value='';document.getElementById('login-pass').value='';
     document.getElementById('logout-btn').style.display='inline-block';
-    _activateTab('admin',document.querySelectorAll('.tab')[1]);
+    _activateTab('admin',document.querySelectorAll('.tab')[2]);
   } else document.getElementById('login-err').textContent='❌ Invalid credentials.';
 }
 function cancelLogin(){document.getElementById('login-overlay').style.display='none';}
-function logout(){isLoggedIn=false;document.getElementById('logout-btn').style.display='none';_activateTab('public',document.querySelectorAll('.tab')[0]);}
-
-// ── COMPLAINTS (Firebase-backed) ──────────────────────────────────────────────
-window._complaints=[];
-window._listReady=false;
-let curFilter='all';
-let curDistrict='all';
+function logout(){isLoggedIn=false;document.getElementById('logout-btn').style.display='none';_activateTab('home',document.querySelectorAll('.tab')[0]);}
+ 
+// ── COMPLAINTS ────────────────────────────────────────────────────────────────
+window._complaints=[];window._listReady=false;
+let curFilter='all',curDistrict='all';
 const EMOJIS={'Garbage dumping / Open dump':'🗑️','Blocked drain / Waterlogging':'💧','Sewage overflow':'💧','Stray animal menace':'🐕','Open defecation spot':'🚽','Broken road / Pothole':'🚧','Illegal construction debris':'🏗️'};
-
+ 
 window.renderList=function(){
- let data=curFilter==='all'?_complaints:curFilter==='urgent'?_complaints.filter(c=>c.priority==='urgent'):_complaints.filter(c=>c.status===curFilter);
-if(curDistrict!=='all')data=data.filter(c=>c.district===curDistrict);
+  let data=curFilter==='all'?_complaints:curFilter==='urgent'?_complaints.filter(c=>c.priority==='urgent'):_complaints.filter(c=>c.status===curFilter);
+  if(curDistrict!=='all')data=data.filter(c=>c.district===curDistrict);
   const el=document.getElementById('clist');
   if(!data.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888">No complaints here ✅</div>';updateStats();return;}
   el.innerHTML=data.map(c=>{
@@ -384,7 +445,7 @@ if(curDistrict!=='all')data=data.filter(c=>c.district===curDistrict);
       <div class="cbody">
         <div class="ctop"><span class="cid-lbl">${c.id}</span>${sb}${ub}${tm}</div>
         <div class="ctitle">${c.type||'Issue'}</div>
-        <div class="cloc">📍 ${c.district} — ${c.location}${c.lat?` (${c.lat},${c.lng})`:''}</div>
+        <div class="cloc">📍 ${c.district} — ${c.location}</div>
         <div class="cai">${(c.aiSummary||'').substring(0,90)}...</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
@@ -394,10 +455,9 @@ if(curDistrict!=='all')data=data.filter(c=>c.district===curDistrict);
       </div>
     </div>`;
   }).join('');
-  updateStats();
-  window._listReady=true;
+  updateStats();window._listReady=true;
 }
-
+ 
 function updateStats(){
   document.getElementById('s-new').textContent=_complaints.filter(c=>c.status==='new').length;
   document.getElementById('s-prog').textContent=_complaints.filter(c=>c.status==='in-progress').length;
@@ -406,12 +466,35 @@ function updateStats(){
 }
 function setFilter(f,btn){curFilter=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderList();}
 function setDistrictFilter(v){curDistrict=v;renderList();}
-
+ 
 async function markAction(docId,status){
   const next=status==='new'?'in-progress':'resolved';
   try{await window._updateDoc(docId,{status:next});}catch(e){alert('Update failed: '+e.message);}
 }
-
+ 
+// ── DELETE ────────────────────────────────────────────────────────────────────
+async function deleteSingle(docId,cid){
+  if(!confirm(`Delete complaint ${cid}? This cannot be undone.`))return;
+  try{await window._deleteDoc(docId);}catch(e){alert('Delete failed: '+e.message);}
+}
+async function confirmDelete(){
+  const days=parseInt(document.getElementById('del-days').value);
+  const cutoff=Date.now()-days*24*60*60*1000;
+  const toDelete=_complaints.filter(c=>{
+    if(c.status!=='resolved')return false;
+    if(days===0)return true;
+    const ts=c.createdAt?.toMillis?c.createdAt.toMillis():(c.createdAt?.seconds*1000||0);
+    return ts<cutoff;
+  });
+  if(!toDelete.length){alert('No resolved complaints found in that range.');return;}
+  if(!confirm(`Permanently delete ${toDelete.length} complaint(s)?`))return;
+  let deleted=0;
+  for(const c of toDelete){try{await window._deleteDoc(c._docId);deleted++;}catch(e){}}
+  document.getElementById('del-bar').style.display='none';
+  alert(`✅ Deleted ${deleted} complaint(s).`);
+}
+ 
+// ── MODAL ─────────────────────────────────────────────────────────────────────
 let modalMap=null;
 function openModal(docId){
   const c=_complaints.find(x=>x._docId===docId);if(!c)return;
@@ -430,19 +513,18 @@ function openModal(docId){
     ${c.lat?'<div id="modal-map"></div>':''}
     <div class="macts">
       ${c.status!=='resolved'?`<button class="abtn primary" onclick="markAction('${c._docId}','${c.status}');closeModal()">${c.status==='new'?'✅ Accept & Assign':'✅ Mark Resolved'}</button>`:''}
-      <button class="abtn" onclick="alert('SMS sent!')">💬 SMS Reporter</button>
+      <button class="abtn" onclick="alert('SMS feature coming soon!')">💬 SMS Reporter</button>
       <button class="abtn" onclick="closeModal()">Close</button>
     </div>`;
   document.getElementById('overlay').classList.add('open');
   if(c.lat){setTimeout(()=>{if(modalMap){modalMap.remove();modalMap=null;}modalMap=L.map('modal-map').setView([c.lat,c.lng],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(modalMap);L.marker([c.lat,c.lng]).addTo(modalMap).bindPopup(`📍 ${c.location}`).openPopup();},100);}
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');if(modalMap){modalMap.remove();modalMap=null;}}
-
-// ── FORM SUBMIT ───────────────────────────────────────────────────────────────
+ 
+// ── FORM ──────────────────────────────────────────────────────────────────────
 let imgB64=null;
 function handleImg(e){
   const f=e.target.files[0];if(!f)return;
-  // Compress to ~200kb max for Firestore
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
@@ -460,45 +542,11 @@ function handleImg(e){
   };
   reader.readAsDataURL(f);
 }
-
-// ── DELETE ────────────────────────────────────────────────────────────────────
-async function deleteSingle(docId, cid){
-  if(!confirm(`Delete complaint ${cid}? This cannot be undone.`)) return;
-  try{
-    await window._deleteDoc(docId);
-    // onSnapshot will auto-refresh the list
-  }catch(e){alert('Delete failed: '+e.message);}
-}
-
-async function confirmDelete(){
-  const days = parseInt(document.getElementById('del-days').value);
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  // Filter resolved complaints older than cutoff (or all resolved if days=0)
-  const toDelete = _complaints.filter(c => {
-    if(c.status !== 'resolved') return false;
-    if(days === 0) return true;
-    // createdAt from Firestore is a Timestamp object
-    const ts = c.createdAt?.toMillis ? c.createdAt.toMillis() : (c.createdAt?.seconds * 1000 || 0);
-    return ts < cutoff;
-  });
-  if(toDelete.length === 0){ alert('No resolved complaints found in that range.'); return; }
-  if(!confirm(`This will permanently delete ${toDelete.length} resolved complaint(s). Are you sure?`)) return;
-  let deleted = 0;
-  for(const c of toDelete){
-    try{ await window._deleteDoc(c._docId); deleted++; }catch(e){}
-  }
-  document.getElementById('del-bar').style.display='none';
-  alert(`✅ Deleted ${deleted} complaint(s) successfully.`);
-}
-
-// ── AI (Gemini — Free) ────────────────────────────────────────────────────────
+ 
 async function callAI(prompt){
-  try{
-    const r=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
-    const d=await r.json();return d.text||'';
-  }catch(e){return '';}
+  try{const r=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});const d=await r.json();return d.text||'';}catch(e){return '';}
 }
-
+ 
 async function submitReport(){
   const district=document.getElementById('district').value;
   if(!district){alert('Please select a district.');return;}
@@ -511,20 +559,10 @@ async function submitReport(){
   const area=document.getElementById('area').value;
   const name=document.getElementById('uname').value;
   const mobile=document.getElementById('mob').value;
-
-  const aiSummary=await callAI(`Analyze WB cleanliness complaint. District:${district}, Type:${type}, Desc:${desc}. 1-2 sentences: health risk level + recommended action. No preamble.`)||'Issue logged. Awaiting analysis.';
-
+  const aiSummary=await callAI(`Analyze WB cleanliness complaint. District:${district}, Type:${type}, Desc:${desc}. 1-2 sentences: health risk + recommended action. No preamble.`)||'Issue logged. Awaiting analysis.';
   const id='WB-'+Date.now().toString(36).toUpperCase();
-  const complaint={
-    id, district, area:area||district,
-    location:locText||`${lat},${lng}`,
-    lat, lng, type, desc, status:'new', priority:'high',
-    time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
-    name, mobile, aiSummary,
-    photoB64: imgB64||null
-  };
   try{
-    await window._addDoc(complaint);
+    await window._addDoc({id,district,area:area||district,location:locText||`${lat},${lng}`,lat,lng,type,desc,status:'new',priority:'high',time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),name,mobile,aiSummary,photoB64:imgB64||null});
     document.getElementById('cid-disp').textContent=id;
     document.getElementById('dept-disp').textContent=district+' Municipal Authority';
     document.getElementById('form-wrap').style.display='none';
@@ -532,7 +570,7 @@ async function submitReport(){
   }catch(e){alert('Submit failed: '+e.message);}
   btn.disabled=false;btn.innerHTML='📤 Submit Report';
 }
-
+ 
 function resetForm(){
   document.getElementById('form-wrap').style.display='block';
   document.getElementById('success-wrap').style.display='none';
@@ -543,57 +581,25 @@ function resetForm(){
   if(marker){map.removeLayer(marker);marker=null;}
   updateCoords();
 }
-
-initMap();
-window._listReady=true;
-
-// ── EXPORT EXCEL ─────────────────────────────────────────────────────────────
+ 
+// ── EXPORT ────────────────────────────────────────────────────────────────────
 function exportExcel(){
   const rows=[['ID','District','Area','Location','Type','Status','Priority','Reporter','Mobile','Time','AI Summary']];
   _complaints.forEach(c=>rows.push([c.id,c.district,c.area,c.location,c.type,c.status,c.priority,c.name||'Anonymous',c.mobile||'—',c.time,c.aiSummary]));
-  let csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
+  const csv=rows.map(r=>r.map(v=>`"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`clean-bengal-complaints-${new Date().toISOString().slice(0,10)}.csv`;
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`clean-bengal-${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
 }
-
-// ── EXPORT PDF ────────────────────────────────────────────────────────────────
 function exportPDF(){
   const win=window.open('','_blank');
-  const rows=_complaints.map(c=>`
-    <tr>
-      <td>${c.id}</td>
-      <td>${c.district}</td>
-      <td>${c.location}</td>
-      <td>${c.type}</td>
-      <td><b>${c.status.toUpperCase()}</b></td>
-      <td>${c.time}</td>
-      <td>${c.name||'Anonymous'}</td>
-    </tr>`).join('');
-  win.document.write(`
-    <html><head><title>Clean Bengal Report</title>
-    <style>
-      body{font-family:Arial,sans-serif;padding:20px}
-      h2{color:#1a5f3f}
-      p{font-size:13px;color:#666}
-      table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}
-      th{background:#1a5f3f;color:#fff;padding:8px;text-align:left}
-      td{padding:7px 8px;border-bottom:1px solid #eee}
-      tr:nth-child(even){background:#f9f9f9}
-    </style></head>
-    <body>
-      <h2>🌿 Clean Bengal — Complaints Report</h2>
-      <p>Generated: ${new Date().toLocaleString('en-IN')} &nbsp;|&nbsp; Total: ${_complaints.length} complaints</p>
-      <table>
-        <thead><tr><th>ID</th><th>District</th><th>Location</th><th>Issue Type</th><th>Status</th><th>Time</th><th>Reporter</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </body></html>`);
-  win.document.close();
-  win.print();
+  const rows=_complaints.map(c=>`<tr><td>${c.id}</td><td>${c.district}</td><td>${c.location}</td><td>${c.type}</td><td><b>${c.status.toUpperCase()}</b></td><td>${c.time}</td><td>${c.name||'Anonymous'}</td></tr>`).join('');
+  win.document.write(`<html><head><title>Clean Bengal Report</title><style>body{font-family:Arial,sans-serif;padding:20px}h2{color:#1a5f3f}p{font-size:13px;color:#666}table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th{background:#1a5f3f;color:#fff;padding:8px;text-align:left}td{padding:7px 8px;border-bottom:1px solid #eee}tr:nth-child(even){background:#f9f9f9}</style></head><body><h2>🌿 Clean Bengal — Complaints Report</h2><p>Generated: ${new Date().toLocaleString('en-IN')} | Total: ${_complaints.length}</p><table><thead><tr><th>ID</th><th>District</th><th>Location</th><th>Issue</th><th>Status</th><th>Time</th><th>Reporter</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  win.document.close();win.print();
 }
+ 
+window._listReady=true;
 </script>
 </body>
 </html>
