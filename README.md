@@ -88,7 +88,7 @@ netlify deploy --prod --dir .
 Open `index.html`, find this line and change the passwords before going live:
 
 ```js
-const ADMINS=[{user:'admin',pass:'wb@2024'},{user:'collector',pass:'district#1'}];
+const ADMINS=[{user:'admin',pass:'wb@2026'},{user:'partha',pass:'1234'}];
 ```
 
 ---
