@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Clean Bengal Portal</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyDKhvN1PwUUkMlVmbifB3m_LD1IKMcwPEg",
+  authDomain:        "project-dc78efb4-f8ad-439f-be9.firebaseapp.com",
+  projectId:         "project-dc78efb4-f8ad-439f-be9",
+  storageBucket:     "project-dc78efb4-f8ad-439f-be9.firebasestorage.app",
+  messagingSenderId: "1060804723450",
+  appId:             "1:1060804723450:web:2748785760adf5036b3f43"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// Real-time listener — admin panel always up to date
+const q = query(collection(db,'complaints'), orderBy('createdAt','desc'));
+onSnapshot(q, snap => {
+  window._complaints = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+  if(window._listReady) window.renderList();
+});
+
+window._db = db;
+window._col = collection(db,'complaints');
+window._updateDoc = (docId, data) => updateDoc(doc(db,'complaints',docId), data);
+window._addDoc   = (data) => addDoc(window._col, { ...data, createdAt: serverTimestamp() });
+window._deleteDoc = (docId) => deleteDoc(doc(db,'complaints',docId));
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
+body{background:#f4f6f4}
+nav{background:#1a5f3f;color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:#f5c518;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo h1{font-size:15px;font-weight:600}.logo p{font-size:11px;opacity:.75}
+.tabs{display:flex;gap:6px;align-items:center}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;cursor:pointer;font-size:13px;transition:.2s}
+.tab.active{background:#fff;color:#1a5f3f;font-weight:600}
+.panel{display:none;padding:20px}.panel.active{display:block}
+.card{background:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:20px;max-width:660px;margin:0 auto}
+.card h2{font-size:17px;font-weight:600;text-align:center}
+.card .sub{font-size:13px;color:#666;text-align:center;margin-top:4px}
+.badge24{display:block;width:fit-content;margin:8px auto 0;background:#e8f5e9;color:#1b5e20;border-radius:20px;padding:4px 12px;font-size:12px}
+.fgroup{margin-top:12px}
+label{font-size:13px;color:#555;display:block;margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;font-size:14px;color:#222}
+textarea{resize:vertical;min-height:72px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.upzone{border:2px dashed #ccc;border-radius:8px;padding:20px;text-align:center;cursor:pointer;background:#fafafa;transition:.2s;margin-top:4px}
+.upzone:hover{border-color:#1a5f3f}.upzone p{font-size:13px;color:#888}
+#img-prev{display:none;width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-top:8px}
+.map-wrap{margin-top:4px;border-radius:8px;overflow:hidden;border:1px solid #ccc}
+#map{height:220px}
+.map-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.mbtn{padding:7px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:13px;cursor:pointer;transition:.2s}
+.mbtn:hover{border-color:#1a5f3f;color:#1a5f3f}
+.mbtn.primary{background:#1a5f3f;color:#fff;border-color:#1a5f3f}
+.coords{font-size:12px;color:#555;margin-top:6px;min-height:18px}
+.submit-btn{width:100%;margin-top:16px;padding:12px;background:#1a5f3f;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+.submit-btn:disabled{background:#aaa;cursor:not-allowed}
+.success{display:none;text-align:center;padding:32px 20px}
+.success .icon{font-size:52px;color:#1a5f3f}
+.cid{background:#e8f5e9;color:#1b5e20;border-radius:8px;padding:12px 24px;font-size:20px;font-weight:700;letter-spacing:1px;display:inline-block;margin:10px 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.scard{background:#fff;border-radius:10px;padding:12px 14px;border:1px solid #e0e0e0}
+.scard .num{font-size:26px;font-weight:700}.scard .lbl{font-size:12px;color:#666;margin-top:2px}
+.scard.d .num{color:#c62828}.scard.w .num{color:#e65100}.scard.g .num{color:#1a5f3f}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.fbtn{padding:5px 12px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer}
+.fbtn.active{background:#1a5f3f;color:#fff;border-color:#1a5f3f}
+.clist{display:flex;flex-direction:column;gap:10px}
+.ccard{background:#fff;border-radius:12px;border:1px solid #e0e0e0;padding:14px 16px;display:flex;gap:12px;cursor:pointer;transition:.15s}
+.ccard:hover{border-color:#1a5f3f}
+.cimg{width:70px;height:70px;border-radius:8px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden}
+.cimg img{width:100%;height:100%;object-fit:cover}
+.cbody{flex:1;min-width:0}
+.ctop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.cid-lbl{font-size:12px;color:#888}.ctitle{font-size:14px;font-weight:600}
+.cloc{font-size:12px;color:#666;margin-top:2px}.cai{font-size:12px;color:#777;margin-top:4px;font-style:italic}
+.badge{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.bnew{background:#fce4ec;color:#880e4f}.bprog{background:#fff3e0;color:#e65100}
+.bres{background:#e8f5e9;color:#1b5e20}.burg{background:#ffebee;color:#c62828}
+.abtn{padding:5px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer;white-space:nowrap}
+.abtn.primary{background:#1a5f3f;color:#fff;border-color:#1a5f3f}
+.login-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center}
+.login-box{background:#fff;border-radius:14px;padding:32px 28px;width:360px;max-width:95vw;text-align:center}
+.login-box h2{font-size:18px;font-weight:700;color:#1a5f3f}
+.login-box p{font-size:13px;color:#666;margin:6px 0 18px}
+.login-box input{margin-bottom:10px}
+.login-err{font-size:12px;color:#c62828;min-height:16px;margin-bottom:6px}
+.login-btn{width:100%;padding:11px;background:#1a5f3f;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+.login-cancel{display:block;margin-top:10px;font-size:13px;color:#888;cursor:pointer;background:none;border:none;width:100%}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;padding:22px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto;position:relative}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:12px}
+.mclose{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+.drow{display:flex;font-size:13px;padding:6px 0;border-bottom:1px solid #eee}
+.dk{color:#888;min-width:110px}
+.aib{background:#f0f7f4;border-radius:8px;padding:12px;margin:12px 0}
+.aib .albl{font-size:12px;color:#555;margin-bottom:5px;font-weight:600}
+.macts{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+#modal-map{height:160px;border-radius:8px;margin-top:10px;border:1px solid #ccc}
+.dots{display:inline-flex;gap:4px}
+.dots span{width:6px;height:6px;border-radius:50%;background:#fff;animation:dt 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dt{0%,80%,100%{opacity:.2}40%{opacity:1}}
+@media(max-width:520px){.row2{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">♻</div>
+    <div><h1>Clean Bengal / পরিষ্কার বাংলা</h1><p>West Bengal Cleanliness Drive Portal</p></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-tab="public" onclick="switchTab('public',this)">📷 Report Issue</button>
+    <button class="tab" data-tab="admin" onclick="switchTab('admin',this)">🛡️ Authority Portal</button>
+    <button id="logout-btn" onclick="logout()" style="display:none;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,100,100,.5);background:rgba(255,50,50,.15);color:#ffcccc;cursor:pointer;font-size:12px">⬠ Logout</button>
+  </div>
+</nav>
+
+<!-- PUBLIC -->
+<div class="panel active" id="panel-public">
+<div class="card">
+  <div id="form-wrap">
+    <h2>Report a Dirty / Unsafe Area</h2>
+    <p class="sub">Your report goes directly to local authorities.</p>
+    <div class="badge24">⏱ Authorities must act within 24 hours</div>
+
+    <div class="fgroup">
+      <label>Upload Photo *</label>
+      <div class="upzone" onclick="document.getElementById('filein').click()">
+        <p>📷 Click to upload photo (JPG/PNG)</p>
+      </div>
+      <img id="img-prev"/>
+      <input type="file" id="filein" accept="image/*" style="display:none" onchange="handleImg(event)"/>
+    </div>
+
+    <div class="fgroup">
+      <label>📍 Pin Location on Map *</label>
+      <div class="map-wrap"><div id="map"></div></div>
+      <div class="map-btns">
+        <button class="mbtn primary" onclick="getGPS()">🎯 Use My GPS</button>
+        <button class="mbtn" onclick="searchAddr()">🔍 Search Address</button>
+        <input id="addr-input" placeholder="Type address & press Search" style="flex:1;min-width:140px"/>
+      </div>
+      <div class="coords" id="coords-display">Click on map or use GPS to pin location</div>
+    </div>
+
+    <div class="row2">
+      <div class="fgroup">
+        <label>District *</label>
+        <select id="district">
+          <option value="">Select</option>
+          <option>Kolkata</option><option>Howrah</option><option>Hooghly</option>
+          <option>North 24 Parganas</option><option>South 24 Parganas</option>
+          <option>Bardhaman</option><option>Murshidabad</option><option>Nadia</option>
+          <option>Malda</option><option>Cooch Behar</option><option>Bankura</option>
+          <option>Purulia</option><option>Darjeeling</option><option>Jalpaiguri</option>
+          <option>Birbhum</option><option>Medinipur East</option><option>Medinipur West</option>
+        </select>
+      </div>
+      <div class="fgroup"><label>Area / Ward</label><input type="text" id="area" placeholder="e.g. Ward 12"/></div>
+    </div>
+
+    <div class="fgroup">
+      <label>Landmark</label>
+      <input type="text" id="loc-text" placeholder="e.g. Near Central Park Gate"/>
+    </div>
+
+    <div class="fgroup">
+      <label>Issue Type</label>
+      <select id="itype">
+        <option value="">Select or let AI detect</option>
+        <option>Garbage dumping / Open dump</option>
+        <option>Blocked drain / Waterlogging</option>
+        <option>Open defecation spot</option>
+        <option>Stray animal menace</option>
+        <option>Sewage overflow</option>
+        <option>Broken road / Pothole</option>
+        <option>Illegal construction debris</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div class="fgroup">
+      <label>Description</label>
+      <textarea id="desc" placeholder="How long? How severe? Any health risks?"></textarea>
+    </div>
+
+    <div class="row2">
+      <div class="fgroup"><label>Your Name (optional)</label><input type="text" id="uname" placeholder="Anonymous"/></div>
+      <div class="fgroup"><label>Mobile (for updates)</label><input type="tel" id="mob" placeholder="10-digit"/></div>
+    </div>
+
+    <button class="submit-btn" id="sbtn" onclick="submitReport()">📤 Submit Report</button>
+  </div>
+
+  <div class="success" id="success-wrap">
+    <div class="icon">✅</div>
+    <h2 style="margin-top:10px">Report Submitted!</h2>
+    <p style="font-size:13px;color:#666;margin-top:6px">Your complaint ID:</p>
+    <div class="cid" id="cid-disp">WB-XXXX</div>
+    <p style="font-size:13px;color:#666">Sent to: <strong id="dept-disp">Authority</strong></p>
+    <p style="font-size:12px;color:#1a5f3f;margin-top:8px">⏱ Action required within 24 hours</p>
+    <button class="abtn primary" style="margin-top:14px" onclick="resetForm()">Report Another</button>
+  </div>
+</div>
+</div>
+
+<!-- ADMIN -->
+<div class="panel" id="panel-admin">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+    <div><h2 style="font-size:18px;font-weight:600">Authority Dashboard</h2><p style="font-size:12px;color:#666">West Bengal — Live Complaints</p></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:11px;background:#f0f7f4;border:1px solid #ccc;border-radius:20px;padding:3px 10px;color:#555">✨ AI Active · 🔴 Live</span>
+      <button class="abtn" onclick="document.getElementById('del-bar').style.display='flex'" style="font-size:12px;color:#c62828;border-color:#f5c6c6">🗑 Clean Old Records</button>
+    </div>
+  </div>
+  <!-- delete confirmation bar -->
+  <div id="del-bar" style="display:none;background:#fff3f3;border:1px solid #f5c6c6;border-radius:8px;padding:10px 14px;margin-bottom:12px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+    <span style="font-size:13px;color:#c62828">⚠️ Permanently delete <b>resolved</b> complaints older than:</span>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <select id="del-days" style="padding:5px 8px;border-radius:6px;border:1px solid #ccc;font-size:13px">
+        <option value="30">30 days</option>
+        <option value="60">60 days</option>
+        <option value="90" selected>90 days</option>
+        <option value="180">180 days</option>
+        <option value="0">All resolved</option>
+      </select>
+      <button class="abtn" style="background:#c62828;color:#fff;border-color:#c62828" onclick="confirmDelete()">Delete Now</button>
+      <button class="abtn" onclick="document.getElementById('del-bar').style.display='none'">Cancel</button>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="scard d"><div class="num" id="s-new">0</div><div class="lbl">New</div></div>
+    <div class="scard w"><div class="num" id="s-prog">0</div><div class="lbl">In Progress</div></div>
+    <div class="scard g"><div class="num" id="s-res">0</div><div class="lbl">Resolved</div></div>
+    <div class="scard"><div class="num" id="s-tot">0</div><div class="lbl">Total</div></div>
+  </div>
+  <div class="filters">
+    <button class="fbtn active" onclick="setFilter('all',this)">All</button>
+    <button class="fbtn" onclick="setFilter('new',this)">New</button>
+    <button class="fbtn" onclick="setFilter('in-progress',this)">In Progress</button>
+    <button class="fbtn" onclick="setFilter('resolved',this)">Resolved</button>
+    <button class="fbtn" onclick="setFilter('urgent',this)">🔴 Urgent</button>
+  </div>
+  <div class="clist" id="clist"><p style="color:#888;font-size:13px;padding:20px">Loading complaints from Firebase...</p></div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="login-overlay" style="display:none">
+  <div class="login-box">
+    <div style="font-size:40px;margin-bottom:8px">🛡️</div>
+    <h2>Authority Login</h2>
+    <p>Restricted to authorised West Bengal government officials only.</p>
+    <input type="text" id="login-user" placeholder="Username" autocomplete="off"/>
+    <input type="password" id="login-pass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="doLogin()">🔐 Login</button>
+    <button class="login-cancel" onclick="cancelLogin()">← Back to Public Portal</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal()">✕</button>
+    <h3 id="m-title">Complaint</h3>
+    <div id="m-body"></div>
+  </div>
+</div>
+
+<script>
+// ── MAP ──────────────────────────────────────────────────────────────────────
+let map,marker,lat=null,lng=null;
+function initMap(){
+  map=L.map('map').setView([23.5,87.5],7);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(map);
+  map.on('click',e=>placePin(e.latlng.lat,e.latlng.lng));
+}
+function placePin(la,ln){
+  lat=+la.toFixed(6);lng=+ln.toFixed(6);
+  if(marker)map.removeLayer(marker);
+  marker=L.marker([lat,lng],{draggable:true}).addTo(map).bindPopup('📍 Complaint location').openPopup();
+  marker.on('dragend',e=>{let p=e.target.getLatLng();lat=+p.lat.toFixed(6);lng=+p.lng.toFixed(6);updateCoords();reverseGeo(lat,lng);});
+  updateCoords();reverseGeo(lat,lng);
+}
+function updateCoords(){document.getElementById('coords-display').textContent=lat?`📍 Pinned: ${lat}, ${lng}`:'Click map or use GPS';}
+async function reverseGeo(la,ln){
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${la}&lon=${ln}&format=json`);const d=await r.json();if(d.display_name)document.getElementById('loc-text').value=d.display_name.split(',').slice(0,3).join(', ');}catch(e){}
+}
+function getGPS(){
+  if(!navigator.geolocation){alert('Geolocation not supported');return;}
+  document.getElementById('coords-display').textContent='⏳ Getting GPS...';
+  navigator.geolocation.getCurrentPosition(p=>{map.setView([p.coords.latitude,p.coords.longitude],15);placePin(p.coords.latitude,p.coords.longitude);},()=>{document.getElementById('coords-display').textContent='❌ GPS denied. Click map manually.';});
+}
+async function searchAddr(){
+  const q=document.getElementById('addr-input').value.trim();if(!q){alert('Enter an address');return;}
+  try{const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q+' West Bengal')}&format=json&limit=1`);const d=await r.json();if(d.length){map.setView([+d[0].lat,+d[0].lon],14);placePin(+d[0].lat,+d[0].lon);}else alert('Address not found.');}catch(e){alert('Search failed.');}
+}
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+// ⚠️  Change these credentials before going live!
+const ADMINS=[{user:'admin',pass:'wb@2024'},{user:'collector',pass:'district#1'}];
+let isLoggedIn=false;
+
+function switchTab(tab,btn){
+  if(tab==='admin'&&!isLoggedIn){document.getElementById('login-overlay').style.display='flex';document.getElementById('login-user').focus();return;}
+  _activateTab(tab,btn);
+}
+function _activateTab(tab,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(el)el.classList.add('active');
+}
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value;
+  if(ADMINS.find(a=>a.user===u&&a.pass===p)){
+    isLoggedIn=true;
+    document.getElementById('login-overlay').style.display='none';
+    document.getElementById('login-err').textContent='';
+    document.getElementById('login-user').value='';document.getElementById('login-pass').value='';
+    document.getElementById('logout-btn').style.display='inline-block';
+    _activateTab('admin',document.querySelectorAll('.tab')[1]);
+  } else document.getElementById('login-err').textContent='❌ Invalid credentials.';
+}
+function cancelLogin(){document.getElementById('login-overlay').style.display='none';}
+function logout(){isLoggedIn=false;document.getElementById('logout-btn').style.display='none';_activateTab('public',document.querySelectorAll('.tab')[0]);}
+
+// ── COMPLAINTS (Firebase-backed) ──────────────────────────────────────────────
+window._complaints=[];
+window._listReady=false;
+let curFilter='all';
+const EMOJIS={'Garbage dumping / Open dump':'🗑️','Blocked drain / Waterlogging':'💧','Sewage overflow':'💧','Stray animal menace':'🐕','Open defecation spot':'🚽','Broken road / Pothole':'🚧','Illegal construction debris':'🏗️'};
+
+window.renderList=function(){
+  const data=curFilter==='all'?_complaints:curFilter==='urgent'?_complaints.filter(c=>c.priority==='urgent'):_complaints.filter(c=>c.status===curFilter);
+  const el=document.getElementById('clist');
+  if(!data.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888">No complaints here ✅</div>';updateStats();return;}
+  el.innerHTML=data.map(c=>{
+    const sb=c.status==='new'?'<span class="badge bnew">New</span>':c.status==='in-progress'?'<span class="badge bprog">In Progress</span>':'<span class="badge bres">Resolved</span>';
+    const ub=c.priority==='urgent'?'<span class="badge burg">🔴 Urgent</span>':'';
+    const tm=c.status!=='resolved'?`<span style="font-size:11px;color:${c.priority==='urgent'?'#c62828':'#1a5f3f'}">⏱${c.priority==='urgent'?'<8h':'<24h'}</span>`:'';
+    const thumb=c.photoB64?`<img src="data:image/jpeg;base64,${c.photoB64}" style="width:100%;height:100%;object-fit:cover"/>`:(EMOJIS[c.type]||'📍');
+    return `<div class="ccard" onclick="openModal('${c._docId}')">
+      <div class="cimg">${thumb}</div>
+      <div class="cbody">
+        <div class="ctop"><span class="cid-lbl">${c.id}</span>${sb}${ub}${tm}</div>
+        <div class="ctitle">${c.type||'Issue'}</div>
+        <div class="cloc">📍 ${c.district} — ${c.location}${c.lat?` (${c.lat},${c.lng})`:''}</div>
+        <div class="cai">${(c.aiSummary||'').substring(0,90)}...</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">
+        <button class="abtn primary" onclick="event.stopPropagation();markAction('${c._docId}','${c.status}')">${c.status==='new'?'Accept':'Update'}</button>
+        <button class="abtn" style="color:#c62828;border-color:#f5c6c6;font-size:11px" onclick="event.stopPropagation();deleteSingle('${c._docId}','${c.id}')">🗑 Delete</button>
+        <span style="font-size:11px;color:#888">${c.time||''}</span>
+      </div>
+    </div>`;
+  }).join('');
+  updateStats();
+  window._listReady=true;
+}
+
+function updateStats(){
+  document.getElementById('s-new').textContent=_complaints.filter(c=>c.status==='new').length;
+  document.getElementById('s-prog').textContent=_complaints.filter(c=>c.status==='in-progress').length;
+  document.getElementById('s-res').textContent=_complaints.filter(c=>c.status==='resolved').length;
+  document.getElementById('s-tot').textContent=_complaints.length;
+}
+function setFilter(f,btn){curFilter=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderList();}
+
+async function markAction(docId,status){
+  const next=status==='new'?'in-progress':'resolved';
+  try{await window._updateDoc(docId,{status:next});}catch(e){alert('Update failed: '+e.message);}
+}
+
+let modalMap=null;
+function openModal(docId){
+  const c=_complaints.find(x=>x._docId===docId);if(!c)return;
+  const sb=c.status==='new'?'<span class="badge bnew">New</span>':c.status==='in-progress'?'<span class="badge bprog">In Progress</span>':'<span class="badge bres">Resolved</span>';
+  document.getElementById('m-title').innerHTML=`${c.id} ${sb}`;
+  const thumb=c.photoB64?`<img src="data:image/jpeg;base64,${c.photoB64}" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin-bottom:10px"/>`:`<div style="font-size:40px;text-align:center;background:#f5f5f5;border-radius:8px;padding:12px;margin-bottom:10px">${EMOJIS[c.type]||'📍'}</div>`;
+  document.getElementById('m-body').innerHTML=`${thumb}
+    <div class="aib"><div class="albl">✨ AI Analysis</div><div style="font-size:13px">${c.aiSummary||'Pending'}</div></div>
+    <div class="drow"><span class="dk">Type</span><span>${c.type}</span></div>
+    <div class="drow"><span class="dk">District</span><span>${c.district}</span></div>
+    <div class="drow"><span class="dk">Location</span><span>${c.location}</span></div>
+    ${c.lat?`<div class="drow"><span class="dk">GPS</span><span>${c.lat}, ${c.lng} <a href="https://maps.google.com/?q=${c.lat},${c.lng}" target="_blank" style="color:#1a5f3f;font-size:12px">Open Maps ↗</a></span></div>`:''}
+    <div class="drow"><span class="dk">Reporter</span><span>${c.name||'Anonymous'}</span></div>
+    <div class="drow"><span class="dk">Mobile</span><span>${c.mobile||'—'}</span></div>
+    <div class="drow"><span class="dk">Reported</span><span>${c.time}</span></div>
+    ${c.lat?'<div id="modal-map"></div>':''}
+    <div class="macts">
+      ${c.status!=='resolved'?`<button class="abtn primary" onclick="markAction('${c._docId}','${c.status}');closeModal()">${c.status==='new'?'✅ Accept & Assign':'✅ Mark Resolved'}</button>`:''}
+      <button class="abtn" onclick="alert('SMS sent!')">💬 SMS Reporter</button>
+      <button class="abtn" onclick="closeModal()">Close</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('open');
+  if(c.lat){setTimeout(()=>{if(modalMap){modalMap.remove();modalMap=null;}modalMap=L.map('modal-map').setView([c.lat,c.lng],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(modalMap);L.marker([c.lat,c.lng]).addTo(modalMap).bindPopup(`📍 ${c.location}`).openPopup();},100);}
+}
+function closeModal(){document.getElementById('overlay').classList.remove('open');if(modalMap){modalMap.remove();modalMap=null;}}
+
+// ── FORM SUBMIT ───────────────────────────────────────────────────────────────
+let imgB64=null;
+function handleImg(e){
+  const f=e.target.files[0];if(!f)return;
+  // Compress to ~200kb max for Firestore
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const max=600;let w=img.width,h=img.height;
+      if(w>max){h=h*(max/w);w=max;}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      imgB64=canvas.toDataURL('image/jpeg',0.7).split(',')[1];
+      document.getElementById('img-prev').src='data:image/jpeg;base64,'+imgB64;
+      document.getElementById('img-prev').style.display='block';
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+async function deleteSingle(docId, cid){
+  if(!confirm(`Delete complaint ${cid}? This cannot be undone.`)) return;
+  try{
+    await window._deleteDoc(docId);
+    // onSnapshot will auto-refresh the list
+  }catch(e){alert('Delete failed: '+e.message);}
+}
+
+async function confirmDelete(){
+  const days = parseInt(document.getElementById('del-days').value);
+  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+  // Filter resolved complaints older than cutoff (or all resolved if days=0)
+  const toDelete = _complaints.filter(c => {
+    if(c.status !== 'resolved') return false;
+    if(days === 0) return true;
+    // createdAt from Firestore is a Timestamp object
+    const ts = c.createdAt?.toMillis ? c.createdAt.toMillis() : (c.createdAt?.seconds * 1000 || 0);
+    return ts < cutoff;
+  });
+  if(toDelete.length === 0){ alert('No resolved complaints found in that range.'); return; }
+  if(!confirm(`This will permanently delete ${toDelete.length} resolved complaint(s). Are you sure?`)) return;
+  let deleted = 0;
+  for(const c of toDelete){
+    try{ await window._deleteDoc(c._docId); deleted++; }catch(e){}
+  }
+  document.getElementById('del-bar').style.display='none';
+  alert(`✅ Deleted ${deleted} complaint(s) successfully.`);
+}
+
+// ── AI (Gemini — Free) ────────────────────────────────────────────────────────
+async function callAI(prompt){
+  try{
+    const r=await fetch('/.netlify/functions/ai',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})});
+    const d=await r.json();return d.text||'';
+  }catch(e){return '';}
+}
+
+async function submitReport(){
+  const district=document.getElementById('district').value;
+  if(!district){alert('Please select a district.');return;}
+  if(!lat){alert('Please pin a location on the map.');return;}
+  const btn=document.getElementById('sbtn');
+  btn.disabled=true;btn.innerHTML='<span class="dots"><span></span><span></span><span></span></span> Submitting...';
+  const type=document.getElementById('itype').value||'General Issue';
+  const desc=document.getElementById('desc').value||'No description';
+  const locText=document.getElementById('loc-text').value;
+  const area=document.getElementById('area').value;
+  const name=document.getElementById('uname').value;
+  const mobile=document.getElementById('mob').value;
+
+  const aiSummary=await callAI(`Analyze WB cleanliness complaint. District:${district}, Type:${type}, Desc:${desc}. 1-2 sentences: health risk level + recommended action. No preamble.`)||'Issue logged. Awaiting analysis.';
+
+  const id='WB-'+Date.now().toString(36).toUpperCase();
+  const complaint={
+    id, district, area:area||district,
+    location:locText||`${lat},${lng}`,
+    lat, lng, type, desc, status:'new', priority:'high',
+    time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+    name, mobile, aiSummary,
+    photoB64: imgB64||null
+  };
+  try{
+    await window._addDoc(complaint);
+    document.getElementById('cid-disp').textContent=id;
+    document.getElementById('dept-disp').textContent=district+' Municipal Authority';
+    document.getElementById('form-wrap').style.display='none';
+    document.getElementById('success-wrap').style.display='block';
+  }catch(e){alert('Submit failed: '+e.message);}
+  btn.disabled=false;btn.innerHTML='📤 Submit Report';
+}
+
+function resetForm(){
+  document.getElementById('form-wrap').style.display='block';
+  document.getElementById('success-wrap').style.display='none';
+  document.getElementById('img-prev').style.display='none';
+  ['district','area','itype','desc','uname','mob'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loc-text').value='';
+  lat=null;lng=null;imgB64=null;
+  if(marker){map.removeLayer(marker);marker=null;}
+  updateCoords();
+}
+
+initMap();
+window._listReady=true;
+</script>
+</body>
+</html>
