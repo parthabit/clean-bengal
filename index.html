@@ -317,7 +317,21 @@ async function searchAddr(){
 }
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
-// ⚠️  Change these credentials before going live!
+
+<button class="fbtn active" onclick="setFilter('all',this)">All</button>
+    <button class="fbtn" onclick="setFilter('new',this)">New</button>
+    <button class="fbtn" onclick="setFilter('in-progress',this)">In Progress</button>
+    <button class="fbtn" onclick="setFilter('resolved',this)">Resolved</button>
+    <button class="fbtn" onclick="setFilter('urgent',this)">🔴 Urgent</button>
+    <select id="district-filter" onchange="setDistrictFilter(this.value)" style="padding:5px 10px;border-radius:20px;border:1px solid #ccc;background:#fff;font-size:12px;cursor:pointer">
+      <option value="all">All Districts</option>
+      <option>Kolkata</option><option>Howrah</option><option>Hooghly</option>
+      <option>North 24 Parganas</option><option>South 24 Parganas</option>
+      <option>Bardhaman</option><option>Murshidabad</option><option>Nadia</option>
+      <option>Malda</option><option>Cooch Behar</option><option>Bankura</option>
+      <option>Purulia</option><option>Darjeeling</option><option>Jalpaiguri</option>
+      <option>Birbhum</option><option>Medinipur East</option><option>Medinipur West</option>
+    </select>
 const ADMINS=[{user:'admin',pass:'wb@2026'},{user:'partha',pass:'1234'}];
 let isLoggedIn=false;
 
@@ -350,10 +364,12 @@ function logout(){isLoggedIn=false;document.getElementById('logout-btn').style.d
 window._complaints=[];
 window._listReady=false;
 let curFilter='all';
+let curDistrict='all';
 const EMOJIS={'Garbage dumping / Open dump':'🗑️','Blocked drain / Waterlogging':'💧','Sewage overflow':'💧','Stray animal menace':'🐕','Open defecation spot':'🚽','Broken road / Pothole':'🚧','Illegal construction debris':'🏗️'};
 
 window.renderList=function(){
-  const data=curFilter==='all'?_complaints:curFilter==='urgent'?_complaints.filter(c=>c.priority==='urgent'):_complaints.filter(c=>c.status===curFilter);
+ let data=curFilter==='all'?_complaints:curFilter==='urgent'?_complaints.filter(c=>c.priority==='urgent'):_complaints.filter(c=>c.status===curFilter);
+if(curDistrict!=='all')data=data.filter(c=>c.district===curDistrict);
   const el=document.getElementById('clist');
   if(!data.length){el.innerHTML='<div style="text-align:center;padding:32px;color:#888">No complaints here ✅</div>';updateStats();return;}
   el.innerHTML=data.map(c=>{
@@ -387,6 +403,7 @@ function updateStats(){
   document.getElementById('s-tot').textContent=_complaints.length;
 }
 function setFilter(f,btn){curFilter=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderList();}
+function setDistrictFilter(v){curDistrict=v;renderList();}
 
 async function markAction(docId,status){
   const next=status==='new'?'in-progress':'resolved';
