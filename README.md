@@ -1,127 +1,100 @@
-# Clean Bengal Portal — Deployment Guide
+# 🌿 Clean Bengal 
+
+> A civic technology portal for West Bengal citizens to report dirty/unsafe areas with GPS photo uploads. Authorities get real-time alerts and must act within 24 hours.
+> 
+> **Built for educational purposes** by a 3rd year Computer Science student.
+
+🔗 **Live Site:** https://cleanbengal.netlify.app  
+🐙 **GitHub:** https://github.com/parthabit/clean-bengal
+
+---
+
+## Features
+
+- 📷 Photo upload with auto-compression
+- 📍 GPS map pin (Leaflet.js + OpenStreetMap)
+- 🤖 AI-powered complaint analysis (Google Gemini)
+- 🔴 Real-time admin dashboard (Firebase Firestore)
+- 🔒 Login-protected authority portal
+- 📊 Export complaints to Excel (CSV) / PDF
+- 🗑️ Delete old resolved records
+- 🗺️ District-wise complaint filtering
+- ⏱️ 24-hour action commitment
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | HTML, CSS, Vanilla JavaScript |
+| Map | Leaflet.js + OpenStreetMap + Nominatim |
+| Database | Firebase Firestore (real-time, free tier) |
+| Hosting | Netlify (free tier) |
+| AI | Google Gemini 1.5 Flash (free API) |
+| Serverless | Netlify Functions (Node.js) |
+| Version Control | Git + GitHub |
+
+---
 
 ## Project Structure
+
 ```
 clean-bengal/
-├── index.html                  ← Main app
-├── netlify.toml                ← Netlify config
+├── index.html                  ← Entire frontend (single file)
+├── netlify.toml                ← Netlify build config
 ├── netlify/functions/
-│   └── ai.js                  ← Secure AI proxy (hides API key)
+│   └── ai.js                  ← Serverless AI proxy (hides API key)
 └── README.md
 ```
 
 ---
 
-## Step 1 — Firebase Setup (Free)
+## Setup & Deploy
 
-1. Go to https://console.firebase.google.com
-2. Click **Add project** → name it `clean-bengal` → Continue
-3. Disable Google Analytics (not needed) → Create project
-4. Click **Firestore Database** in left sidebar → **Create database**
-   - Choose **Start in test mode** → Next → Select region (asia-south1) → Enable
-5. Click the ⚙️ gear icon → **Project settings**
-6. Under **Your apps**, click `</>` (Web) → Register app name → **Register**
-7. Copy the `firebaseConfig` object shown
+### 1. Firebase
+1. Go to console.firebase.google.com → Create project
+2. Firestore Database → Create → Start in test mode → asia-south1
+3. Project Settings → Web app → Copy firebaseConfig
+4. Paste config values into `index.html`
 
-**Paste into index.html** — find this section and replace the PASTE_* values:
-```js
-const firebaseConfig = {
-  apiKey:            "PASTE_API_KEY",
-  authDomain:        "PASTE_AUTH_DOMAIN",
-  projectId:         "PASTE_PROJECT_ID",
-  storageBucket:     "PASTE_STORAGE_BUCKET",
-  messagingSenderId: "PASTE_MESSAGING_SENDER_ID",
-  appId:             "PASTE_APP_ID"
-};
-```
+### 2. Gemini API Key (Free)
+1. Go to aistudio.google.com → Get API Key → Create
+2. No credit card needed
 
----
-
-## Step 2 — Get FREE Gemini API Key
-
-1. Go to https://aistudio.google.com
-2. Click **Get API Key** → **Create API Key** → Copy it
-3. No credit card needed — free forever (1500 requests/day)
-
----
-
-## Step 3 — Deploy to Netlify
-
+### 3. Deploy to Netlify
 ```bash
-# Install Netlify CLI (once)
 npm install -g netlify-cli
-
-# Go into project folder
-cd clean-bengal
-
-# Login (opens browser)
 netlify login
-
-# Deploy
+netlify deploy --prod --dir .
+netlify env:set GEMINI_API_KEY YOUR_KEY_HERE
 netlify deploy --prod --dir .
 ```
 
-When prompted for a site name, enter: `clean-bengal-portal`
-Your site will be live at: **https://clean-bengal-portal.netlify.app**
-
----
-
-## Step 4 — Add Gemini API Key as Environment Variable
-
-```bash
-netlify env:set GEMINI_API_KEY AIzaSy-XXXXXXXXXXXXXXXX
-```
-
-Or via Netlify dashboard:
-1. Site Configuration → Environment Variables → Add variable
-2. Key: `GEMINI_API_KEY` | Value: your key
-
-Then redeploy:
-```bash
-netlify deploy --prod --dir .
-```
-
----
-
-## Step 5 — Change Admin Credentials
-
-Open `index.html`, find this line and change the passwords before going live:
-
+### 4. Change Admin Credentials
+Find in `index.html` and update before going public:
 ```js
-const ADMINS=[{user:'admin',pass:'wb@2026'},{user:'partha',pass:'1234'}];
+const ADMINS=[{user:'admin',pass:'your-password'}];
 ```
 
 ---
 
-## Firestore Security Rules (Important before going public)
-
-In Firebase Console → Firestore → Rules, replace with:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /complaints/{id} {
-      allow create: if true;           // Anyone can submit
-      allow read, update: if false;    // Only via admin panel (add real auth later)
-    }
-  }
-}
-```
+## Admin Login (Demo)
+| Username | Password |
+|---|---|
+| admin | wb@2026 |
+| partha | 1234 |
 
 ---
 
-## Done! Your URLs
-
-| URL | Purpose |
-|-----|---------|
-| `https://clean-bengal-portal.netlify.app` | Public complaint form |
-| `https://clean-bengal-portal.netlify.app` → Authority tab | Admin login (protected) |
+## Future Improvements
+- [ ] Firebase Authentication (replace hardcoded login)
+- [ ] SMS notifications via Fast2SMS
+- [ ] Per-district officer accounts
+- [ ] Mobile app (React Native)
+- [ ] Analytics dashboard
 
 ---
 
-## Optional: Custom Domain
-```bash
-netlify domains:add yourcustomdomain.com
-```
-Then update DNS records at your domain registrar as shown by Netlify.
+## License
+MIT — Free to use, modify, and distribute.

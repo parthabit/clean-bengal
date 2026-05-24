@@ -469,9 +469,19 @@ function setDistrictFilter(v){curDistrict=v;renderList();}
  
 async function markAction(docId,status){
   const next=status==='new'?'in-progress':'resolved';
-  try{await window._updateDoc(docId,{status:next});}catch(e){alert('Update failed: '+e.message);}
+  try{
+    await window._updateDoc(docId,{status:next});
+    // Auto SMS reporter on status change
+    const c=_complaints.find(x=>x._docId===docId);
+    if(c?.mobile){
+      fetch('/.netlify/functions/sms',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mobile:c.mobile,complaintId:c.id,district:c.district,status:next})
+      });
+    }
+  }catch(e){alert('Update failed: '+e.message);}
 }
- 
 // ── DELETE ────────────────────────────────────────────────────────────────────
 async function deleteSingle(docId,cid){
   if(!confirm(`Delete complaint ${cid}? This cannot be undone.`))return;
@@ -513,13 +523,36 @@ function openModal(docId){
     ${c.lat?'<div id="modal-map"></div>':''}
     <div class="macts">
       ${c.status!=='resolved'?`<button class="abtn primary" onclick="markAction('${c._docId}','${c.status}');closeModal()">${c.status==='new'?'✅ Accept & Assign':'✅ Mark Resolved'}</button>`:''}
-      <button class="abtn" onclick="alert('SMS feature coming soon!')">💬 SMS Reporter</button>
+${c.mobile ? `<button class="abtn" onclick="sendSMS('${c.mobile}','${c.id}','${c.district}','${c.status}')">💬 SMS Reporter</button>` : '<button class="abtn" style="opacity:.4;cursor:not-allowed">💬 No Mobile</button>'}
       <button class="abtn" onclick="closeModal()">Close</button>
     </div>`;
   document.getElementById('overlay').classList.add('open');
   if(c.lat){setTimeout(()=>{if(modalMap){modalMap.remove();modalMap=null;}modalMap=L.map('modal-map').setView([c.lat,c.lng],14);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(modalMap);L.marker([c.lat,c.lng]).addTo(modalMap).bindPopup(`📍 ${c.location}`).openPopup();},100);}
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');if(modalMap){modalMap.remove();modalMap=null;}}
+
+async function sendSMS(mobile, complaintId, district, status){
+  const btn = event.target;
+  btn.textContent='Sending...';btn.disabled=true;
+  try{
+    const r = await fetch('/.netlify/functions/sms',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ mobile, complaintId, district, status })
+    });
+    const d = await r.json();
+    if(d.return === true){
+      btn.textContent='✅ SMS Sent';
+      btn.style.color='#1a5f3f';
+    } else {
+      btn.textContent='❌ Failed';
+      console.error(d);
+    }
+  }catch(e){
+    btn.textContent='❌ Error';
+  }
+  setTimeout(()=>{btn.textContent='💬 SMS Reporter';btn.disabled=false;btn.style.color='';},3000);
+}
  
 // ── FORM ──────────────────────────────────────────────────────────────────────
 let imgB64=null;
