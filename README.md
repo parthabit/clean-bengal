@@ -8,7 +8,6 @@
 🐙 **GitHub:** https://github.com/parthabit/clean-bengal
 
 ---
-
 ## Features
 
 - 📷 Photo upload with auto-compression
