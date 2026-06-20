@@ -7,7 +7,6 @@
 🔗 **Live Site:** https://cleanbengal.netlify.app  
 
 ---
-
 ## Features
 
 - 📷 Photo upload with auto-compression
