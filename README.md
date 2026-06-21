@@ -72,7 +72,6 @@ netlify deploy --prod --dir .
 Find in `index.html` and update before going public:
 ```js
 const ADMINS=[{user:'admin',pass:'your-password'}];
-```
 
 ---
 
