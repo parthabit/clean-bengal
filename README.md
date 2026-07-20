@@ -26,7 +26,7 @@
 | Layer | Technology |
 |---|---|
 | Frontend | HTML, CSS, Vanilla JavaScript |
-| Map | Leaflet.js + OpenStreetMap + Nominatim |
+| Map | Leaflet.js + OpenStreetMap + Nominatim 
 | Database | Firebase Firestore (real-time, free tier) |
 | Hosting | Netlify (free tier) |
 | AI | Google Gemini 1.5 Flash (free API) |
