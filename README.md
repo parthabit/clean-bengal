@@ -8,7 +8,7 @@
 
 --- 
 ## Features
-
+   
 - 📷 Photo upload with auto-compression
 - 📍 GPS map pin (Leaflet.js + OpenStreetMap)
 - 🤖 AI-powered complaint analysis (Google Gemini)
