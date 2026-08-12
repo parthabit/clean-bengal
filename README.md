@@ -7,7 +7,7 @@
 --- 
 ## Features
    
-- 📷 Photo upload with auto-compression
+- 📷 Photo upload with auto-compression 
 - 📍 GPS map pin (Leaflet.js + OpenStreetMap)
 - 🤖 AI-powered complaint analysis (Google Gemini)
 - 🔴 Real-time admin dashboard (Firebase Firestore)
