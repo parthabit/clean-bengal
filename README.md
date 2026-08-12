@@ -18,7 +18,6 @@
 - ⏱️ 24-hour action commitment
 
 ---
-
 ## Tech Stack
 
 | Layer | Technology |
