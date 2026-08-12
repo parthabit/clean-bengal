@@ -4,8 +4,6 @@
 
 > **Built for educational purposes** by a 3rd year Computer Science student.   
  
-🔗 **Live Site:** https://cleanbengal.netlify.app   
-
 --- 
 ## Features
    
