@@ -39,8 +39,6 @@ clean-bengal/
 ├── netlify/functions/
 │   └── ai.js                  ← Serverless AI proxy (hides API key)
 └── README.md
-```
-
 ---
 
 ## Setup & Deploy
