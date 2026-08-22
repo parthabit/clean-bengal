@@ -3,7 +3,7 @@
 > A civic technology portal for West Bengal citizens to report dirty/unsafe areas with GPS photo uploads. Authorities get real-time alerts and must act within 24 hours.
 
 > **Built for educational purposes** by a 3rd year Computer Science student.   
---- 
+---  
 ## Features
    
 - 📷 Photo upload with auto-compression 
