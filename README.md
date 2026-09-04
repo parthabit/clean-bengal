@@ -15,7 +15,7 @@
 - 🗑️ Delete old resolved records
 - 🗺️ District-wise complaint filtering
 - ⏱️ 24-hour action commitment
-
+ 
 ---
 ## Tech Stack
 
