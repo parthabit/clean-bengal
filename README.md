@@ -12,7 +12,7 @@
 - 🔴 Real-time admin dashboard (Firebase Firestore)
 - 🔒 Login-protected authority portal
 - 📊 Export complaints to Excel (CSV) / PDF
-- 🗑️ Delete old resolved records
+- 🗑️ Delete old resolved records 
 - 🗺️ District-wise complaint filtering
 - ⏱️ 24-hour action commitment
  
