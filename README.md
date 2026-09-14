@@ -29,7 +29,7 @@
 | Serverless | Netlify Functions (Node.js) |
 | Version Control | Git + GitHub |
 
----
+
 ## Project Structure
 
 ```
