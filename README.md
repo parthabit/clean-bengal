@@ -19,7 +19,7 @@
 ---
 ## Tech Stack
 
-| Layer | Technology |
+| Layer | Technology | 
 |---|---|
 | Frontend | HTML, CSS, Vanilla JavaScript |
 | Map | Leaflet.js + OpenStreetMap + Nominatim 
