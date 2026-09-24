@@ -11,7 +11,7 @@
 - 🤖 AI-powered complaint analysis (Google Gemini)
 - 🔴 Real-time admin dashboard (Firebase Firestore)
 - 🔒 Login-protected authority portal
-- 📊 Export complaints to Excel (CSV) / PDF
+- 📊 Export complaints to Excel (CSV) / PDF 
 - 🗑️ Delete old resolved records 
 - 🗺️ District-wise complaint filtering
 - ⏱️ 24-hour action commitment
