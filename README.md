@@ -66,7 +66,6 @@ Find in `index.html` and update before going public:
 ```js
 const ADMINS=[{user:'admin',pass:'your-password'}];
 
----
 
 ## Admin Login (Demo)
 | Username | Password |
