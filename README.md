@@ -4,6 +4,7 @@
 
 > **Built for educational purposes** by a 4th year Computer Science student.
 ---    
+
 ## Features
 - 📷 Photo upload with auto-compression   
 - 📍 GPS map pin (Leaflet.js + OpenStreetMap)
